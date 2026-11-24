@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>即時互動便利貼牆 — 講師投影端</title>
+  <meta name="description" content="純靜態 GitHub Pages 雙向互動便利貼牆，支援一鍵全螢幕放大 QR Code、即時文字推播、PNG 圖片與純文字匯出。" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="host-shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button
+          type="button"
+          id="qrMiniBtn"
+          class="qr-mini-card"
+          title="點擊放大 QR Code 到全螢幕（快捷鍵 Q）"
+          aria-label="點擊放大 QR Code 到全螢幕"
+        >
+          <div id="qrMiniBox" class="qr-mini-box" aria-hidden="true"></div>
+          <div class="qr-mini-meta">
+            <div class="qr-mini-title">
+              <span>掃碼互動</span>
+              <span class="qr-zoom-hint">🔍 點擊放大</span>
+            </div>
+            <div class="qr-mini-sub">
+              <span><span id="connDot" class="live-dot"></span> <span id="connLabel">連線中</span> · <strong id="studentCount">0</strong> 人在線</span>
+              <span>· <strong id="noteCount">0</strong> 張便利貼</span>
+            </div>
+          </div>
+        </button>
+
+        <div class="topic-wrap">
+          <div class="topic-label">
+            <span>討論主題（點擊即可編輯，按 Enter 同步至學員手機 · 房間碼：<code id="roomBadge"></code>）</span>
+          </div>
+          <input
+            id="topicInput"
+            class="topic-input"
+            type="text"
+            maxlength="120"
+            value="歡迎分享你的想法或提問！"
+            aria-label="討論主題"
+          />
+        </div>
+      </div>
+
+      <nav class="topbar-actions" aria-label="看板操作工具列">
+        <button type="button" id="copyJoinUrlBtn" class="btn" title="複製學員加入網址">
+          🔗 複製網址
+        </button>
+        <button type="button" id="toggleBroadcastBtn" class="btn btn-primary" aria-expanded="false">
+          📤 傳給學員
+        </button>
+        <button type="button" id="downloadPngBtn" class="btn" title="把目前便利貼牆存成 PNG 圖片">
+          🖼️ 下載圖片
+        </button>
+        <button type="button" id="copyTextBtn" class="btn" title="複製全部純文字給 AI 分析">
+          📋 複製純文字
+        </button>
+        <button type="button" id="downloadTxtBtn" class="btn" title="下載純文字檔 (.txt)">
+          📄 下載 .txt
+        </button>
+        <button type="button" id="clearNotesBtn" class="btn btn-danger" title="清空目前所有便利貼">
+          🗑️ 清空
+        </button>
+        <button type="button" id="newRoomBtn" class="btn" title="產生全新房間碼與 QR Code">
+          🔄 新房間
+        </button>
+        <button type="button" id="themeToggleBtn" class="btn btn-icon" title="切換亮色 / 深色投影模式" aria-label="切換亮色或深色模式">
+          🌗
+        </button>
+      </nav>
+    </header>
+
+    <!-- Collapsible Lecturer -> Student Broadcast Drawer -->
+    <section id="broadcastDrawer" class="broadcast-drawer" aria-label="傳送資料給學員手機">
+      <div class="broadcast-inner">
+        <div>
+          <textarea
+            id="broadcastInput"
+            class="broadcast-textarea"
+            maxlength="4000"
+            placeholder="貼上想傳給現場學員的 Prompt 範例、網址或練習題目…&#10;按下「推播到學員手機」後，所有學員的手機畫面會立刻收到並可一鍵複製；或按「轉成純文字 QR Code 放大」直接給相機掃描。"
+          ></textarea>
+        </div>
+        <div class="broadcast-controls">
+          <button type="button" id="sendBroadcastBtn" class="btn btn-primary">
+            🚀 推播到學員手機
+          </button>
+          <button type="button" id="textQrZoomBtn" class="btn">
+            🔍 轉成純文字 QR Code 放大
+          </button>
+          <button type="button" id="clearBroadcastBtn" class="btn">
+            清除目前推播
+          </button>
+        </div>
+      </div>
+      <div class="broadcast-status">
+        <span id="broadcastStatusText">目前尚未推播任何資料給學員</span>
+        <span>提示：學員掃描左上角同一個 QR Code，即可收看推播並傳送便利貼</span>
+      </div>
+    </section>
+
+    <div id="activePushPill" class="active-push-pill" hidden>
+      <div class="active-push-card">
+        <span class="active-push-badge">📡 目前已推播給學員</span>
+        <span id="activePushPreview" class="active-push-text"></span>
+        <button type="button" id="editPushBtn" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">
+          編輯 / 關閉
+        </button>
+      </div>
+    </div>
+
+    <main class="board-main">
+      <div id="emptyState" class="empty-state">
+        <div style="font-size: 2.6rem;" aria-hidden="true">📝</div>
+        <h2>等待學員便利貼飛上來</h2>
+        <p>
+          點擊左上角 <strong>QR Code 卡片</strong>（或按鍵盤 <strong>Q</strong>）即可全螢幕放大給現場學員掃碼。<br />
+          學員送出後，各色便利貼會帶著動畫飛上這面牆！
+        </p>
+        <button type="button" id="emptyZoomQrBtn" class="btn btn-primary" style="padding: 12px 22px; font-size: 0.96rem;">
+          🔍 立即全螢幕顯示 QR Code
+        </button>
+      </div>
+
+      <section id="notesGrid" class="notes-grid" aria-live="polite" aria-label="學員便利貼牆"></section>
+    </main>
+  </div>
+
+  <!-- Fullscreen QR Code Modal -->
+  <div id="qrModal" class="qr-modal" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+    <div id="qrModalCard" class="qr-modal-card">
+      <button type="button" id="qrModalClose" class="qr-modal-close" aria-label="關閉全螢幕 QR Code">✕</button>
+      <div id="qrModalBadge" class="qr-modal-badge">雙向互動房間</div>
+      <h2 id="qrModalTitle" class="qr-modal-title">請用手機掃描加入互動</h2>
+      <div id="qrModalSvgWrap" class="qr-modal-svg-wrap"></div>
+      <div id="qrModalUrl" class="qr-modal-url"></div>
+      <div class="qr-modal-tip">點擊任意處、右上角 ✕，或按 <strong>ESC</strong> / <strong>Q</strong> 即可返回看板</div>
+    </div>
+  </div>
+
+  <!-- Single Note Spotlight Modal -->
+  <div id="noteSpotlight" class="note-spotlight" role="dialog" aria-modal="true" aria-label="便利貼放大檢視">
+    <div id="spotlightCard" class="note-spotlight-card color-yellow">
+      <div id="spotlightText" class="note-spotlight-text"></div>
+      <div class="note-spotlight-meta">
+        <span id="spotlightAuthor"></span>
+        <span id="spotlightTime"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="./vendor/qrcode.min.js"></script>
+  <script src="./vendor/mqtt.min.js"></script>
+  <script src="./host.js"></script>
+</body>
+</html>

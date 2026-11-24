@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>加入現場互動 — 學員端</title>
+  <meta name="description" content="現場演講雙向互動頁：接收講師傳送的文字與 Prompt 並一鍵複製，或發送彩色便利貼飛上大螢幕。" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="student-shell">
+    <header class="student-header">
+      <div class="student-status-row">
+        <span><span class="live-dot"></span> <span id="connStatus">連線中…</span></span>
+        <span>現場雙向互動</span>
+      </div>
+      <h1 id="studentTopic" class="student-topic">歡迎分享你的想法或提問！</h1>
+    </header>
+
+    <section id="receivedCard" class="student-card" aria-label="講師傳送的資料">
+      <h2 class="student-card-title">
+        <span>📩 講師傳送的資料</span>
+        <span id="receivedTime" style="font-size: 0.76rem; color: var(--text-muted); font-weight: 500;"></span>
+      </h2>
+      <div id="receivedBox" class="received-box empty">
+        講師傳送 Prompt、重點或連結時，會即時顯示在這裡給你複製
+      </div>
+      <div id="receivedActions" class="received-actions" hidden>
+        <button type="button" id="copyReceivedBtn" class="btn btn-primary">
+          📋 一鍵複製內容
+        </button>
+        <a id="openLinkBtn" class="btn" href="#" target="_blank" rel="noopener noreferrer" hidden style="text-decoration: none;">
+          🔗 開啟連結
+        </a>
+      </div>
+    </section>
+
+    <section class="student-card" aria-label="送出彩色便利貼">
+      <h2 class="student-card-title">
+        <span>📝 貼上你的便利貼</span>
+        <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 500;">選擇顏色</span>
+      </h2>
+
+      <div id="colorPicker" class="color-picker" role="radiogroup" aria-label="選擇便利貼顏色">
+        <button type="button" class="color-swatch active" data-color="yellow" aria-label="經典黃" aria-checked="true"></button>
+        <button type="button" class="color-swatch" data-color="pink" aria-label="櫻花粉" aria-checked="false"></button>
+        <button type="button" class="color-swatch" data-color="blue" aria-label="晴空藍" aria-checked="false"></button>
+        <button type="button" class="color-swatch" data-color="green" aria-label="薄荷綠" aria-checked="false"></button>
+        <button type="button" class="color-swatch" data-color="purple" aria-label="薰衣草紫" aria-checked="false"></button>
+        <button type="button" class="color-swatch" data-color="orange" aria-label="蜜桃橘" aria-checked="false"></button>
+      </div>
+
+      <form id="noteForm">
+        <input
+          id="authorInput"
+          class="student-input"
+          type="text"
+          maxlength="24"
+          placeholder="你的名字或暱稱（選填，留空為匿名）"
+          aria-label="你的名字或暱稱"
+        />
+        <textarea
+          id="noteInput"
+          class="student-textarea tint-yellow"
+          maxlength="280"
+          placeholder="輸入你的想法、問題或心得…"
+          aria-label="便利貼內容"
+          required
+        ></textarea>
+        <div class="char-row">
+          <span>送出後會立刻飛上講師大螢幕</span>
+          <span id="charCounter">0 / 280</span>
+        </div>
+        <button type="submit" id="submitNoteBtn" class="btn btn-primary btn-launch">
+          ✨ 送出便利貼（飛上大螢幕）
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="./vendor/mqtt.min.js"></script>
+  <script src="./join.js"></script>
+</body>
+</html>
